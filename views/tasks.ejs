@@ -1,0 +1,92 @@
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white"><strong>Add Task</strong></div>
+            <div class="card-body">
+                <% if (subjects.length) { %>
+                <form method="POST" action="/tasks">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" rows="2" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <select name="subject_id" class="form-select" required>
+                            <% subjects.forEach(s => { %>
+                                <option value="<%= s.id %>"><%= s.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Deadline</label>
+                        <input type="datetime-local" name="deadline" class="form-control" required>
+                    </div>
+                    <button class="btn btn-primary w-100">Add Task</button>
+                </form>
+                <% } else { %>
+                <p class="text-muted">Add a <a href="/subjects">subject</a> first.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Your Tasks</h5>
+            <div class="btn-group btn-group-sm">
+                <a class="btn btn-outline-secondary <%= filter_by === 'all' ? 'active' : '' %>"
+                   href="/tasks?filter=all">All</a>
+                <a class="btn btn-outline-secondary <%= filter_by === 'pending' ? 'active' : '' %>"
+                   href="/tasks?filter=pending">Pending</a>
+                <a class="btn btn-outline-secondary <%= filter_by === 'completed' ? 'active' : '' %>"
+                   href="/tasks?filter=completed">Completed</a>
+                <a class="btn btn-outline-secondary <%= filter_by === 'overdue' ? 'active' : '' %>"
+                   href="/tasks?filter=overdue">Overdue</a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <ul class="list-group list-group-flush">
+                <% if (tasks.length) { %>
+                    <% tasks.forEach(t => { %>
+                    <% const is_overdue = !t.completed && new Date(t.deadline) < now; %>
+                    <li class="list-group-item d-flex justify-content-between align-items-start <%= t.completed ? 'opacity-50' : '' %>">
+                        <div class="me-3">
+                            <div class="fw-semibold <%= t.completed ? 'text-decoration-line-through' : '' %>">
+                                <%= t.title %>
+                            </div>
+                            <% if (t.description) { %>
+                            <div class="small text-muted"><%= t.description %></div>
+                            <% } %>
+                            <small>
+                                <span class="badge" style="background: <%= t.subject.color %>"><%= t.subject.name %></span>
+                                <span class="<%= is_overdue ? 'text-danger fw-bold' : 'text-muted' %>">
+                                    <i class="bi bi-clock"></i> <%= formatDate(t.deadline) %>
+                                    <%= is_overdue ? '(overdue)' : '' %>
+                                </span>
+                            </small>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <form method="POST" action="/tasks/<%= t.id %>/toggle">
+                                <button class="btn btn-sm <%= t.completed ? 'btn-success' : 'btn-outline-success' %>">
+                                    <i class="bi bi-check2"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="/tasks/<%= t.id %>/delete"
+                                  onsubmit="return confirm('Delete this task?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </li>
+                    <% }) %>
+                <% } else { %>
+                    <li class="list-group-item text-muted text-center py-4">No tasks to show.</li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</div>
